@@ -1,8 +1,8 @@
 from pathlib import Path
-#from random import randint
 from data.import_catalog import import_raw
 from repository.catalog import Catalog
 from repository.model import Asset
+from ishell.cli import IShell, create_parsers
 
 def insert_asset(database, asset_info):
     vendor, family, series, model, *xx= asset_info
@@ -24,32 +24,23 @@ def is_database_exist(folder_path, file_name, file_ext):
         return False
 
 def main():
-    LOAD_ASSETS = 3000
-
-    raw_catalog = import_raw("./data/catalog.txt", LOAD_ASSETS)
+    LOAD_ASSETS = 4000
 
     if not is_database_exist("./repository", "assets_catalog", "pkl"):
+        raw_catalog = import_raw("./data/catalog.txt", LOAD_ASSETS)
         database = Catalog()
         for x in range(LOAD_ASSETS):
             info = raw_catalog[x].split(",")
             insert_asset(database, info)
 
+        database._create_vspace()
     else:
         database = Catalog.load("./repository/assets_catalog.pkl")
 
-    database._create_vspace()
+    parser_search, parser_select = create_parsers()
 
-    q = " ".join(raw_catalog[50].split(","))
-    matches = database.search(q, 5)
-
-    for item in matches:
-        print(f"Query: {q}")
-        print("".center(50, "-"))
-        print(f"Confidence: {item[0]:.4f} | Document: {item[1]}")
-        print(item[2])
-        print("".center(50, "="))
-
-    database.save("./repository/assets_catalog.pkl")
+    # Run interactive shell
+    IShell(database, parser_search, parser_select).cmdloop()
 
 if __name__ == '__main__':
     main()

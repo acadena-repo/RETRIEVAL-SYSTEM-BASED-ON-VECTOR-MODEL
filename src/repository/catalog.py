@@ -28,11 +28,10 @@ class Catalog:
         asset = self._db.get(id, None)
         return asset
     
-
     def _create_vspace(self):
         self._vspace = self.vmodel.fit_transform(self.corpus)
 
-    def search(self, query, top_match = 10):
+    def search(self, query, top_match = 5):
         matches = []
 
         q_vector = self.vmodel.transform([query])
